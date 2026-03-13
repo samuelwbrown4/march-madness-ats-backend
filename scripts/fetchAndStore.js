@@ -12,7 +12,7 @@ async function fetchAndStore(inputDate, runDate) {
 
         const TOURNAMENT_API_BASE_URL = process.env.TOURNAMENT_API_BASE_URL
 
-        const year = new Date(inputDate).getFullYear(); 
+        const year = new Date(inputDate).getFullYear();
         const API_URL = `${TOURNAMENT_API_BASE_URL}${year}`
 
 
@@ -38,8 +38,8 @@ async function fetchAndStore(inputDate, runDate) {
         const championship = data.championships[0];
         const games = championship.games;
         const rounds = championship.rounds;
-        
-        
+
+
 
         //for each round, take the date range and split it into start and end dates.
         rounds.forEach(function (round) {
@@ -89,19 +89,22 @@ async function fetchAndStore(inputDate, runDate) {
         const [yYear, month, day] = inputDate.split('-');
         // 11:59:59 PM Eastern = 03:59:59 UTC next day
         const runForDate = new Date(Date.UTC(Number(yYear), Number(month) - 1, Number(day) + 1, 3, 59, 59, 999));
+        const inputDateOnly = `${yYear}-${month}-${day}`;
 
 
 
         for (let game of games) {
             if (game.round === 0) continue;
-            let gameDay = new Date(game.startDate);
-            if (game.statusCodeDisplay === 'final' && gameDay <= runForDate) {
+            const [gameMonth, gameDay, gameYear] = game.startDate.split('/');
+            const gameDateOnly = `${gameYear}-${gameMonth.padStart(2, '0')}-${gameDay.padStart(2, '0')}`;
+            
+            if (game.statusCodeDisplay === 'final' && gameDateOnly === inputDateOnly) {
                 for (let team of game.teams) {
 
 
                     let dbTeam = await Team.findOne({ name: team.nameShort, seed: team.seed })
-                    
-                    if(!dbTeam){
+
+                    if (!dbTeam) {
                         console.warn(`Team not found: ${team.nameShort}`);
                         continue;
                     }
