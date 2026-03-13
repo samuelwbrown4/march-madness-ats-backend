@@ -22,7 +22,7 @@ const teamsRoutes = require('./routes/teamsRoutes')
 const adminRoutes = require('./routes/adminRoutes')
 const leagueRoutes = require('./routes/leagueRoutes')
 
-const allowedOrigins = process.env.NODE_ENV === 'production' ? [process.env.FRONTEND_URL] : ['http://localhost:3000'];
+const allowedOrigins = process.env.NODE_ENV === 'production' ? [process.env.FRONTEND_URL] : ['http://localhost:5173'];
 app.use(cors({ origin: allowedOrigins }));
 
 

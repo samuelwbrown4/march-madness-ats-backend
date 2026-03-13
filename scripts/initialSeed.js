@@ -8,7 +8,7 @@ const League = require('../models/League')
 
 
 async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, runDate) {
-    console.log("number of owners:" , numberOfOwners)
+    console.log("number of owners:", numberOfOwners)
     const regions = [2, 3, 4, 5];
 
     const TOURNAMENT_API_BASE_URL = process.env.TOURNAMENT_API_BASE_URL
@@ -110,128 +110,229 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
         const allTeams = []
 
         if (numberOfOwners === 8) {
-
             for (let region of regions) {
                 const regionGames = games.filter(game => game.sectionId === region && game.round === 1);
                 const teams = [];
 
-                const shuffledOwners = [...owners];
-                shuffle(shuffledOwners);
+                // Create a pool where each owner appears exactly twice
+                const ownerPool = [];
+                owners.forEach(owner => {
+                    ownerPool.push(owner);
+                    ownerPool.push(owner);
+                });
 
-                const ownerAssignments = Array(shuffledOwners.length).fill(0);
+                // Shuffle the pool for randomness
+                shuffle(ownerPool);
 
-                regionGames.forEach(game => {
-                    // Find two owners who have less than 2 teams
-                    let availableOwners = shuffledOwners.filter((owner, idx) => ownerAssignments[idx] < 2);
-                    shuffle(availableOwners);
-                    game.teams.forEach((team, teamIdx) => {
-                        // Pick an owner who doesn't have 2 teams yet
-                        let owner;
-                        for (let idx = 0; idx < availableOwners.length; idx++) {
-                            if (ownerAssignments[shuffledOwners.indexOf(availableOwners[idx])] < 2) {
-                                owner = availableOwners[idx];
-                                ownerAssignments[shuffledOwners.indexOf(owner)] += 1;
-                                availableOwners.splice(idx, 1);
+                // Fix any self-matchups by swapping
+                for (let i = 0; i < ownerPool.length - 1; i += 2) {
+                    if (ownerPool[i] === ownerPool[i + 1]) {
+                        // Find a different owner to swap with
+                        for (let j = i + 2; j < ownerPool.length; j++) {
+                            if (ownerPool[j] !== ownerPool[i]) {
+                                [ownerPool[i + 1], ownerPool[j]] = [ownerPool[j], ownerPool[i + 1]];
                                 break;
                             }
                         }
-                        teams.push({
-                            name: team.nameShort,
-                            seed: team.seed,
-                            rounds: [
-                                {
-                                    owner: owner,
-                                    ownerTeam: team.nameShort,
-                                    spread: null,
-                                    finalScore: null,
-                                    opponent: null,
-                                    opponentSpread: null,
-                                    opponentFinalScore: null,
-                                    isFavorite: false,
-                                    didWin: false,
-                                    didCover: false,
-                                    isFinal: false,
-                                    ownerUpdated: false
-                                },
-                                {
-                                    owner: null,
-                                    ownerTeam: team.nameShort,
-                                    spread: null,
-                                    finalScore: null,
-                                    opponent: null,
-                                    opponentSpread: null,
-                                    opponentFinalScore: null,
-                                    isFavorite: false,
-                                    didWin: false,
-                                    didCover: false,
-                                    isFinal: false,
-                                    ownerUpdated: false
-                                },
-                                {
-                                    owner: null,
-                                    ownerTeam: team.nameShort,
-                                    spread: null,
-                                    finalScore: null,
-                                    opponent: null,
-                                    opponentSpread: null,
-                                    opponentFinalScore: null,
-                                    isFavorite: false,
-                                    didWin: false,
-                                    didCover: false,
-                                    isFinal: false,
-                                    ownerUpdated: false
-                                },
-                                {
-                                    owner: null,
-                                    ownerTeam: team.nameShort,
-                                    spread: null,
-                                    finalScore: null,
-                                    opponent: null,
-                                    opponentSpread: null,
-                                    opponentFinalScore: null,
-                                    isFavorite: false,
-                                    didWin: false,
-                                    didCover: false,
-                                    isFinal: false,
-                                    ownerUpdated: false
-                                },
-                                {
-                                    owner: null,
-                                    ownerTeam: team.nameShort,
-                                    spread: null,
-                                    finalScore: null,
-                                    opponent: null,
-                                    opponentSpread: null,
-                                    opponentFinalScore: null,
-                                    isFavorite: false,
-                                    didWin: false,
-                                    didCover: false,
-                                    isFinal: false,
-                                    ownerUpdated: false
-                                },
-                                {
-                                    owner: null,
-                                    ownerTeam: team.nameShort,
-                                    spread: null,
-                                    finalScore: null,
-                                    opponent: null,
-                                    opponentSpread: null,
-                                    opponentFinalScore: null,
-                                    isFavorite: false,
-                                    didWin: false,
-                                    didCover: false,
-                                    isFinal: false,
-                                    ownerUpdated: false
-                                }
-                            ],
-                            leagueName: leagueName,
-                            leagueId: newLeague._id
-                        });
+                    }
+                }
+
+                // Assign owners from the pool to games
+                let poolIndex = 0;
+                regionGames.forEach(game => {
+                    let owner1 = ownerPool[poolIndex++];
+                    let owner2 = ownerPool[poolIndex++];
+
+                    // Create team object for first team
+                    teams.push({
+                        name: game.teams[0].nameShort,
+                        seed: game.teams[0].seed,
+                        rounds: [
+                            {
+                                owner: owner1,
+                                ownerTeam: game.teams[0].nameShort,
+                                spread: null,
+                                finalScore: null,
+                                opponent: null,
+                                opponentSpread: null,
+                                opponentFinalScore: null,
+                                isFavorite: false,
+                                didWin: false,
+                                didCover: false,
+                                isFinal: false,
+                                ownerUpdated: false
+                            },
+                            {
+                                owner: null,
+                                ownerTeam: game.teams[0].nameShort,
+                                spread: null,
+                                finalScore: null,
+                                opponent: null,
+                                opponentSpread: null,
+                                opponentFinalScore: null,
+                                isFavorite: false,
+                                didWin: false,
+                                didCover: false,
+                                isFinal: false,
+                                ownerUpdated: false
+                            },
+                            {
+                                owner: null,
+                                ownerTeam: game.teams[0].nameShort,
+                                spread: null,
+                                finalScore: null,
+                                opponent: null,
+                                opponentSpread: null,
+                                opponentFinalScore: null,
+                                isFavorite: false,
+                                didWin: false,
+                                didCover: false,
+                                isFinal: false,
+                                ownerUpdated: false
+                            },
+                            {
+                                owner: null,
+                                ownerTeam: game.teams[0].nameShort,
+                                spread: null,
+                                finalScore: null,
+                                opponent: null,
+                                opponentSpread: null,
+                                opponentFinalScore: null,
+                                isFavorite: false,
+                                didWin: false,
+                                didCover: false,
+                                isFinal: false,
+                                ownerUpdated: false
+                            },
+                            {
+                                owner: null,
+                                ownerTeam: game.teams[0].nameShort,
+                                spread: null,
+                                finalScore: null,
+                                opponent: null,
+                                opponentSpread: null,
+                                opponentFinalScore: null,
+                                isFavorite: false,
+                                didWin: false,
+                                didCover: false,
+                                isFinal: false,
+                                ownerUpdated: false
+                            },
+                            {
+                                owner: null,
+                                ownerTeam: game.teams[0].nameShort,
+                                spread: null,
+                                finalScore: null,
+                                opponent: null,
+                                opponentSpread: null,
+                                opponentFinalScore: null,
+                                isFavorite: false,
+                                didWin: false,
+                                didCover: false,
+                                isFinal: false,
+                                ownerUpdated: false
+                            }
+                        ],
+                        leagueName: leagueName,
+                        leagueId: newLeague._id
+                    });
+
+                    // Create team object for second team
+                    teams.push({
+                        name: game.teams[1].nameShort,
+                        seed: game.teams[1].seed,
+                        rounds: [
+                            {
+                                owner: owner2,
+                                ownerTeam: game.teams[1].nameShort,
+                                spread: null,
+                                finalScore: null,
+                                opponent: null,
+                                opponentSpread: null,
+                                opponentFinalScore: null,
+                                isFavorite: false,
+                                didWin: false,
+                                didCover: false,
+                                isFinal: false,
+                                ownerUpdated: false
+                            },
+                            {
+                                owner: null,
+                                ownerTeam: game.teams[1].nameShort,
+                                spread: null,
+                                finalScore: null,
+                                opponent: null,
+                                opponentSpread: null,
+                                opponentFinalScore: null,
+                                isFavorite: false,
+                                didWin: false,
+                                didCover: false,
+                                isFinal: false,
+                                ownerUpdated: false
+                            },
+                            {
+                                owner: null,
+                                ownerTeam: game.teams[1].nameShort,
+                                spread: null,
+                                finalScore: null,
+                                opponent: null,
+                                opponentSpread: null,
+                                opponentFinalScore: null,
+                                isFavorite: false,
+                                didWin: false,
+                                didCover: false,
+                                isFinal: false,
+                                ownerUpdated: false
+                            },
+                            {
+                                owner: null,
+                                ownerTeam: game.teams[1].nameShort,
+                                spread: null,
+                                finalScore: null,
+                                opponent: null,
+                                opponentSpread: null,
+                                opponentFinalScore: null,
+                                isFavorite: false,
+                                didWin: false,
+                                didCover: false,
+                                isFinal: false,
+                                ownerUpdated: false
+                            },
+                            {
+                                owner: null,
+                                ownerTeam: game.teams[1].nameShort,
+                                spread: null,
+                                finalScore: null,
+                                opponent: null,
+                                opponentSpread: null,
+                                opponentFinalScore: null,
+                                isFavorite: false,
+                                didWin: false,
+                                didCover: false,
+                                isFinal: false,
+                                ownerUpdated: false
+                            },
+                            {
+                                owner: null,
+                                ownerTeam: game.teams[1].nameShort,
+                                spread: null,
+                                finalScore: null,
+                                opponent: null,
+                                opponentSpread: null,
+                                opponentFinalScore: null,
+                                isFavorite: false,
+                                didWin: false,
+                                didCover: false,
+                                isFinal: false,
+                                ownerUpdated: false
+                            }
+                        ],
+                        leagueName: leagueName,
+                        leagueId: newLeague._id
                     });
                 });
 
                 allTeams.push(...teams);
-
             }
         } else if (numberOfOwners === 64) {
             const shuffledOwners = [...owners];
