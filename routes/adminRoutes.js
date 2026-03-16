@@ -106,7 +106,7 @@ router.get('/get-runData', requireAdmin, async (req, res) => {
 
 })
 
-router.get('/get-metadata', requireAdmin, async (req, res) => {
+router.get('/get-metadata', async (req, res) => {
     try {
         const metaDocs = await metadata.find({})
         res.json({ metadata: metaDocs })

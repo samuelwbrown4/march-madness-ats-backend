@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 
 const League = require('../models/League')
 const Team = require('../models/Team')
+const LeagueQueue = require('../models/LeagueQueue')
 
 const initialSeedTeams = require('../scripts/initialSeed');
 
@@ -121,10 +122,39 @@ router.get('/get-all-leagues', async (req, res) => {
             allLeagueNames.push(league.name)
         })
 
-        res.status(200).json({success: true , leagueArray: allLeagueNames})
+        res.status(200).json({ success: true, leagueArray: allLeagueNames })
     } catch (error) {
         res.status(500).json({ error: error.message || 'Server Error' });
     }
+
+})
+
+router.post('/queue-league', async (req, res) => {
+    try {
+        const { leagueName, owners, numberOfOwners, year, runDate } = req.body
+        console.log('req received')
+
+        let existingLeague = await LeagueQueue.findOne({ name: leagueName });
+
+        if (!existingLeague) {
+            await LeagueQueue.create({
+                name: leagueName,
+                players: owners,
+                numberOfOwners: numberOfOwners,
+                year: year,
+                createdAt: runDate
+            })
+
+            res.status(200).json({ success: true })
+        } else {
+            res.status(200).json({ error: 'League name already queued'})
+        }
+
+
+    } catch (error) {
+        res.status(500).json({ error: error.message || 'Server Error' });
+    }
+
 
 })
 
