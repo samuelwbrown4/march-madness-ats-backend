@@ -116,6 +116,7 @@ exports.getAllTeams = async (req, res) => {
                     team.dbSpread = dbTeam.rounds[roundIdx].spread;
                     team.isFinal = dbTeam.rounds[roundIdx].isFinal;
                     team.didCover = dbTeam.rounds[roundIdx].didCover;
+                    team.logoURL = dbTeam.rounds[roundIdx].logoURL;
                 })
             })
         }
@@ -131,6 +132,7 @@ exports.getAllTeams = async (req, res) => {
                     team.dbSpread = dbTeam.rounds[roundIdx].spread;
                     team.isFinal = dbTeam.rounds[roundIdx].isFinal;
                     team.didCover = dbTeam.rounds[roundIdx].didCover;
+                    team.logoURL = dbTeam.rounds[roundIdx].logoURL;
                 })
             })
         }
@@ -144,6 +146,7 @@ exports.getAllTeams = async (req, res) => {
                 team.dbSpread = dbTeam.rounds[roundIdx].spread;
                 team.isFinal = dbTeam.rounds[roundIdx].isFinal;
                 team.didCover = dbTeam.rounds[roundIdx].didCover;
+                team.logoURL = dbTeam.rounds[roundIdx].logoURL;
             })
         }
 

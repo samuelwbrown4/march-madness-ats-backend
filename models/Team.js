@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const roundSchema = new mongoose.Schema({
     owner: String,
     ownerTeam: String,
+    matchedId: Number,
+    logoURL: String,
     spread: Number,
     finalScore: Number,
     opponent: String,

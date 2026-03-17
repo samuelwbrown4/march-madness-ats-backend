@@ -39,6 +39,10 @@ async function spreadUpdater(spreadUpdateDate, runDate) {
         const championship = data.championships[0];
         const games = championship.games;
 
+        let rawMap = fs.readFileSync(path.resolve(__dirname, `../data/map/master.json`));
+        let map = JSON.parse(rawMap);
+
+
         //************************************************************************//
 
 
@@ -53,6 +57,11 @@ async function spreadUpdater(spreadUpdateDate, runDate) {
         await Timestamp.insertOne(log);
 
         //fetch spreads for games occuring on the same day as the tournament data update fetch.
+
+        console.log('SPREAD_API_URL:', SPREAD_API_URL);
+        console.log('Decoded start:', decodeURIComponent(SPREAD_API_URL.split('startDateRange=')[1].split('&')[0]));
+        console.log('Decoded end:', decodeURIComponent(SPREAD_API_URL.split('endDateRange=')[1]));
+
         const spreadRes = await fetch(SPREAD_API_URL, {
             headers: {
                 "Authorization": `Bearer ${process.env.SPREAD_API_KEY}`,
@@ -62,6 +71,11 @@ async function spreadUpdater(spreadUpdateDate, runDate) {
         const spreads = await spreadRes.json();
 
         console.log('fetched spreads: ', spreads.length)
+
+        function getTeamId(team) {
+            let schoolObj = map.find((school) => school.seo === team.seoname)
+            return schoolObj.matchedId
+        }
 
 
         for (let game of games) {
@@ -73,8 +87,8 @@ async function spreadUpdater(spreadUpdateDate, runDate) {
                 if (gameDate.getTime() >= startToday.getTime() && gameDate.getTime() <= endToday.getTime()) {
 
                     let matchedGame = spreads.find(spreadGame =>
-                        (spreadGame.homeTeam === game.teams[0].nameShort && spreadGame.awayTeam === game.teams[1].nameShort) ||
-                        (spreadGame.homeTeam === game.teams[1].nameShort && spreadGame.awayTeam === game.teams[0].nameShort)
+                        (spreadGame.homeTeamId === getTeamId(game.teams[0]) && spreadGame.awayTeamId === getTeamId(game.teams[1])) ||
+                        (spreadGame.homeTeamId === getTeamId(game.teams[1]) && spreadGame.awayTeamId === getTeamId(game.teams[0]))
                     );
 
                     if (matchedGame && matchedGame.lines) {
@@ -86,26 +100,31 @@ async function spreadUpdater(spreadUpdateDate, runDate) {
                             for (let team of game.teams) {
 
                                 let spreadValue = null
-                                if (team.nameShort === matchedGame.homeTeam) {
+                                if (getTeamId(team) === matchedGame.homeTeamId) {
                                     spreadValue = lineInfo.spread;
 
-                                } else if (team.nameShort === matchedGame.awayTeam) {
+                                } else if (getTeamId(team) === matchedGame.awayTeamId) {
                                     spreadValue = -lineInfo.spread;
 
                                 }
 
-                                const dbTeam = await Team.findOne({ name: team.nameShort, seed: team.seed })
+                                const dbTeams = await Team.find({ name: team.nameShort, seed: team.seed })
 
-
-                                if (dbTeam.rounds[game.round - 1].spread === null) {
-                                    dbTeam.rounds[game.round - 1].spread = spreadValue;
-                                    dbTeam.rounds[game.round - 1].opponentSpread = (spreadValue * -1);
-                                    await dbTeam.save();
-
-                                    totalSpreadsInjected++;
-                                    console.log(`Injected spread for ${team.nameShort}: ${spreadValue}`);
+                                if (dbTeams.length === 0) {
+                                    console.warn(`No teams found: ${team.nameShort} seed ${team.seed}`);
+                                    continue;
                                 }
-                                ;
+
+                                for (let dbTeam of dbTeams) {
+                                    if (dbTeam.rounds[game.round - 1].spread === null) {
+                                        dbTeam.rounds[game.round - 1].spread = spreadValue;
+                                        dbTeam.rounds[game.round - 1].opponentSpread = (spreadValue * -1);
+                                        await dbTeam.save();
+
+                                        totalSpreadsInjected++;
+                                        console.log(`Injected spread for ${team.nameShort} in league ${dbTeam.leagueName}: ${spreadValue}`);
+                                    }
+                                }
                             }
                         }
                     }

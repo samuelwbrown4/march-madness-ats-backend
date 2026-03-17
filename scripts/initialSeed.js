@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const fs = require('fs');
+const path = require('path');
 const Team = require('../models/Team')
 const Timestamp = require('../models/Timestamp')
 const League = require('../models/League')
@@ -100,6 +101,25 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
             JSON.stringify(data, null, 2)
         );
 
+
+        let rawMap = fs.readFileSync(path.resolve(__dirname, `../data/map/master.json`));
+        let map = JSON.parse(rawMap);
+
+        games.forEach(function (game) {
+            game.teams.forEach(function (team) {
+                let object = map.find((school) => school.seo === team.seoname);
+
+                if (!object) {
+                    console.warn(`⚠️  Team not found in map: ${team.seoname} (${team.nameShort})`);
+                    team.matchedId = null;
+                    team.logoURL = null;
+                } else {
+                    team.matchedId = object.matchedId;
+                    team.logoURL = object.logoURL;
+                }
+            })
+        })
+
         function shuffle(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -151,6 +171,8 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
                             {
                                 owner: owner1,
                                 ownerTeam: game.teams[0].nameShort,
+                                matchedId: game.teams[0].matchedId,
+                                logoURL: game.teams[0].logoURL,
                                 spread: null,
                                 finalScore: null,
                                 opponent: null,
@@ -165,6 +187,8 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
                             {
                                 owner: null,
                                 ownerTeam: game.teams[0].nameShort,
+                                matchedId: game.teams[0].matchedId,
+                                logoURL: game.teams[0].logoURL,
                                 spread: null,
                                 finalScore: null,
                                 opponent: null,
@@ -179,6 +203,8 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
                             {
                                 owner: null,
                                 ownerTeam: game.teams[0].nameShort,
+                                matchedId: game.teams[0].matchedId,
+                                logoURL: game.teams[0].logoURL,
                                 spread: null,
                                 finalScore: null,
                                 opponent: null,
@@ -193,6 +219,8 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
                             {
                                 owner: null,
                                 ownerTeam: game.teams[0].nameShort,
+                                matchedId: game.teams[0].matchedId,
+                                logoURL: game.teams[0].logoURL,
                                 spread: null,
                                 finalScore: null,
                                 opponent: null,
@@ -207,6 +235,8 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
                             {
                                 owner: null,
                                 ownerTeam: game.teams[0].nameShort,
+                                matchedId: game.teams[0].matchedId,
+                                logoURL: game.teams[0].logoURL,
                                 spread: null,
                                 finalScore: null,
                                 opponent: null,
@@ -221,6 +251,8 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
                             {
                                 owner: null,
                                 ownerTeam: game.teams[0].nameShort,
+                                matchedId: game.teams[0].matchedId,
+                                logoURL: game.teams[0].logoURL,
                                 spread: null,
                                 finalScore: null,
                                 opponent: null,
@@ -245,6 +277,8 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
                             {
                                 owner: owner2,
                                 ownerTeam: game.teams[1].nameShort,
+                                matchedId: game.teams[1].matchedId,
+                                logoURL: game.teams[1].logoURL,
                                 spread: null,
                                 finalScore: null,
                                 opponent: null,
@@ -259,6 +293,8 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
                             {
                                 owner: null,
                                 ownerTeam: game.teams[1].nameShort,
+                                matchedId: game.teams[1].matchedId,
+                                logoURL: game.teams[1].logoURL,
                                 spread: null,
                                 finalScore: null,
                                 opponent: null,
@@ -273,6 +309,8 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
                             {
                                 owner: null,
                                 ownerTeam: game.teams[1].nameShort,
+                                matchedId: game.teams[1].matchedId,
+                                logoURL: game.teams[1].logoURL,
                                 spread: null,
                                 finalScore: null,
                                 opponent: null,
@@ -287,6 +325,8 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
                             {
                                 owner: null,
                                 ownerTeam: game.teams[1].nameShort,
+                                matchedId: game.teams[1].matchedId,
+                                logoURL: game.teams[1].logoURL,
                                 spread: null,
                                 finalScore: null,
                                 opponent: null,
@@ -301,6 +341,8 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
                             {
                                 owner: null,
                                 ownerTeam: game.teams[1].nameShort,
+                                matchedId: game.teams[1].matchedId,
+                                logoURL: game.teams[1].logoURL,
                                 spread: null,
                                 finalScore: null,
                                 opponent: null,
@@ -315,6 +357,8 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
                             {
                                 owner: null,
                                 ownerTeam: game.teams[1].nameShort,
+                                matchedId: game.teams[1].matchedId,
+                                logoURL: game.teams[1].logoURL,
                                 spread: null,
                                 finalScore: null,
                                 opponent: null,
@@ -352,6 +396,8 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
                             {
                                 owner: shuffledOwners[ownerIdx],
                                 ownerTeam: team.nameShort,
+                                matchedId: team.matchedId,
+                                logoURL: team.logoURL,
                                 spread: null,
                                 finalScore: null,
                                 opponent: null,
@@ -366,6 +412,8 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
                             {
                                 owner: null,
                                 ownerTeam: team.nameShort,
+                                matchedId: team.matchedId,
+                                logoURL: team.logoURL,
                                 spread: null,
                                 finalScore: null,
                                 opponent: null,
@@ -380,6 +428,8 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
                             {
                                 owner: null,
                                 ownerTeam: team.nameShort,
+                                matchedId: team.matchedId,
+                                logoURL: team.logoURL,
                                 spread: null,
                                 finalScore: null,
                                 opponent: null,
@@ -394,6 +444,8 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
                             {
                                 owner: null,
                                 ownerTeam: team.nameShort,
+                                matchedId: team.matchedId,
+                                logoURL: team.logoURL,
                                 spread: null,
                                 finalScore: null,
                                 opponent: null,
@@ -408,6 +460,8 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
                             {
                                 owner: null,
                                 ownerTeam: team.nameShort,
+                                matchedId: team.matchedId,
+                                logoURL: team.logoURL,
                                 spread: null,
                                 finalScore: null,
                                 opponent: null,
@@ -422,6 +476,8 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
                             {
                                 owner: null,
                                 ownerTeam: team.nameShort,
+                                matchedId: team.matchedId,
+                                logoURL: team.logoURL,
                                 spread: null,
                                 finalScore: null,
                                 opponent: null,
