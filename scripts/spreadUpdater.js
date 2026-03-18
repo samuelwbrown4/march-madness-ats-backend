@@ -4,6 +4,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 const Team = require('../models/Team');
 const Timestamp = require('../models/Timestamp');
+const League = require('../models/League')
 
 
 
@@ -11,6 +12,9 @@ const Timestamp = require('../models/Timestamp');
 async function spreadUpdater(spreadUpdateDate, runDate) {
     try {
         console.log(spreadUpdateDate)
+
+        const leagues = await League.find({isArchived: false})
+        const activeIds = leagues.map((l)=>l._id.toString())
 
         let totalSpreadsInjected = 0;
 
@@ -116,7 +120,8 @@ async function spreadUpdater(spreadUpdateDate, runDate) {
                                 }
 
                                 for (let dbTeam of dbTeams) {
-                                    if (dbTeam.rounds[game.round - 1].spread === null) {
+                                    if(activeIds.includes(dbTeam.leagueId)){
+                                        if (dbTeam.rounds[game.round - 1].spread === null) {
                                         dbTeam.rounds[game.round - 1].spread = spreadValue;
                                         dbTeam.rounds[game.round - 1].opponentSpread = (spreadValue * -1);
                                         await dbTeam.save();
@@ -124,6 +129,7 @@ async function spreadUpdater(spreadUpdateDate, runDate) {
                                         totalSpreadsInjected++;
                                         console.log(`Injected spread for ${team.nameShort} in league ${dbTeam.leagueName}: ${spreadValue}`);
                                     }
+                                    }     
                                 }
                             }
                         }

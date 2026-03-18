@@ -4,6 +4,7 @@ const path = require('path');
 
 const Team = require('../models/Team');
 const Timestamp = require('../models/Timestamp');
+const League = require('../models/League');
 
 
 async function updateOwners(updateOwnersDate, runDate) {
@@ -21,6 +22,9 @@ async function updateOwners(updateOwnersDate, runDate) {
             const [month, day, year] = date.split('/');
             return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${time}:00`);
         }
+
+        const leagues = await League.find({ isArchived: false })
+        const activeIds = leagues.map((l) => l._id.toString())
 
         const log = {
             runType: 'ownerUpdate',
@@ -40,79 +44,92 @@ async function updateOwners(updateOwnersDate, runDate) {
             const nextRoundIdx = game.round;
 
             const winningTeam = game.teams.find((team) => team.isWinner === true);
-            const dbWinningTeam = await Team.findOne({ name: winningTeam.nameShort });
-
-
             const losingTeam = game.teams.find((team) => team.isWinner === false);
-            const dbLosingTeam = await Team.findOne({ name: losingTeam.nameShort });
+
+            const dbWinningTeams = await Team.find({ name: winningTeam.nameShort, seed: winningTeam.seed });
+            const dbLosingTeams = await Team.find({ name: losingTeam.nameShort, seed: losingTeam.seed });
+
+            if (dbWinningTeams.length === 0 || dbLosingTeams.length === 0) {
+                console.warn(`Teams not found: ${winningTeam.nameShort} or ${losingTeam.nameShort}`);
+                continue;
+            }
+
+            for (let i = 0; i < dbWinningTeams.length; i++) {
+                const dbWinningTeam = dbWinningTeams[i];
+                const dbLosingTeam = dbLosingTeams.find((team) => team.leagueId === dbWinningTeam.leagueId);
+
+                if (updateDate > gameDate && game.statusCodeDisplay === 'final' && !dbWinningTeam.rounds[roundIdx].ownerUpdated && !dbLosingTeam.rounds[roundIdx].ownerUpdated && activeIds.includes(dbWinningTeam.leagueId) && activeIds.includes(dbLosingTeam.leagueId)) {
+
+                    const winningTeamScore = dbWinningTeam.rounds[roundIdx].finalScore;
+                    const winningTeamSpread = dbWinningTeam.rounds[roundIdx].spread;
+                    const winningTeamAdjustedScore = winningTeamScore + winningTeamSpread;
 
 
-            if (updateDate > gameDate && game.statusCodeDisplay === 'final' && !dbWinningTeam.rounds[roundIdx].ownerUpdated && !dbLosingTeam.rounds[roundIdx].ownerUpdated) {
+                    const losingTeamScore = dbLosingTeam.rounds[roundIdx].finalScore;
+                    const losingTeamSpread = dbLosingTeam.rounds[roundIdx].spread;
+                    const losingTeamAdjustedScore = losingTeamScore + losingTeamSpread;
 
-                const winningTeamScore = dbWinningTeam.rounds[roundIdx].finalScore;
-                const winningTeamSpread = dbWinningTeam.rounds[roundIdx].spread;
-                const winningTeamAdjustedScore = winningTeamScore + winningTeamSpread;
+                    if (winningTeamAdjustedScore > losingTeamAdjustedScore) {
 
-
-                const losingTeamScore = dbLosingTeam.rounds[roundIdx].finalScore;
-                const losingTeamSpread = dbLosingTeam.rounds[roundIdx].spread;
-                const losingTeamAdjustedScore = losingTeamScore + losingTeamSpread;
-
-                if (winningTeamAdjustedScore > losingTeamAdjustedScore) {
-
-                    dbWinningTeam.rounds[roundIdx].didCover = true;
+                        dbWinningTeam.rounds[roundIdx].didCover = true;
 
 
-                    dbLosingTeam.rounds[roundIdx].didCover = false;
+                        dbLosingTeam.rounds[roundIdx].didCover = false;
 
 
-                } else {
+                    } else {
 
-                    dbLosingTeam.rounds[roundIdx].didCover = true;
-
-
-                    dbWinningTeam.rounds[roundIdx].didCover = false;
-
-                }
-
-                await dbLosingTeam.save();
-                await dbWinningTeam.save();
-
-                dbWinningTeam.rounds[roundIdx].opponent = dbLosingTeam.name;
-                dbWinningTeam.rounds[roundIdx].opponentFinalScore = dbLosingTeam.rounds[roundIdx].finalScore;
-
-                dbLosingTeam.rounds[roundIdx].opponent = dbWinningTeam.name;
-                dbLosingTeam.rounds[roundIdx].opponentFinalScore = dbWinningTeam.rounds[roundIdx].finalScore;
+                        dbLosingTeam.rounds[roundIdx].didCover = true;
 
 
-                dbWinningTeam.rounds[roundIdx].isFavorite = winningTeamSpread < 0 ? true : false;
-
-                dbLosingTeam.rounds[roundIdx].isFavorite = losingTeamSpread < 0 ? true : false;
-
-                const gameRound = game.round;
-
-                if (dbWinningTeam && dbLosingTeam) {
-                    //console.log('underdog: ', dbUnderdog.name , dbUnderdog.spreads[`round${gameRound}`])
-                    if (dbWinningTeam.rounds[roundIdx].didCover) {
-                        //keep favorite owner the same
-                        dbWinningTeam.rounds[nextRoundIdx].owner = dbWinningTeam.rounds[roundIdx].owner;
-                        await dbWinningTeam.save();
-                        console.log('updated favorite')
-
-
-                    } else if (!dbLosingTeam.rounds[roundIdx].isFavorite && dbLosingTeam.rounds[roundIdx].didCover) {
-                        //owner of underdog in this round is new owner of winningTeam
-                        dbWinningTeam.rounds[nextRoundIdx].owner = dbLosingTeam.rounds[roundIdx].owner;
-                        await dbWinningTeam.save();
-                        console.log('updated favorite w previous underdog')
+                        dbWinningTeam.rounds[roundIdx].didCover = false;
 
                     }
 
-                } else console.log('underdog or favorite not found')
+                    await dbLosingTeam.save();
+                    await dbWinningTeam.save();
 
+                    dbWinningTeam.rounds[roundIdx].opponent = dbLosingTeam.name;
+                    dbWinningTeam.rounds[roundIdx].opponentFinalScore = dbLosingTeam.rounds[roundIdx].finalScore;
+
+                    dbLosingTeam.rounds[roundIdx].opponent = dbWinningTeam.name;
+                    dbLosingTeam.rounds[roundIdx].opponentFinalScore = dbWinningTeam.rounds[roundIdx].finalScore;
+
+
+                    dbWinningTeam.rounds[roundIdx].isFavorite = winningTeamSpread < 0 ? true : false;
+
+                    dbLosingTeam.rounds[roundIdx].isFavorite = losingTeamSpread < 0 ? true : false;
+
+                    const gameRound = game.round;
+
+                    if (dbWinningTeam && dbLosingTeam) {
+                        //console.log('underdog: ', dbUnderdog.name , dbUnderdog.spreads[`round${gameRound}`])
+                        if (dbWinningTeam.rounds[roundIdx].didCover) {
+                            //keep favorite owner the same
+                            dbWinningTeam.rounds[nextRoundIdx].owner = dbWinningTeam.rounds[roundIdx].owner;
+                            dbWinningTeam.rounds[roundIdx].ownerUpdated = true;
+                            dbLosingTeam.rounds[roundIdx].ownerUpdated = true;
+                            await dbWinningTeam.save();
+                            await dbLosingTeam.save();
+                            console.log('updated favorite')
+
+
+                        } else if (!dbLosingTeam.rounds[roundIdx].isFavorite && dbLosingTeam.rounds[roundIdx].didCover) {
+                            //owner of underdog in this round is new owner of winningTeam
+                            dbWinningTeam.rounds[nextRoundIdx].owner = dbLosingTeam.rounds[roundIdx].owner;
+                            dbWinningTeam.rounds[roundIdx].ownerUpdated = true;
+                            dbLosingTeam.rounds[roundIdx].ownerUpdated = true;
+                            await dbWinningTeam.save();
+                            await dbLosingTeam.save();
+                            console.log('updated favorite w previous underdog')
+
+                        }
+
+                    } else console.log('underdog or favorite not found')
+
+                }
             }
         }
-
     } catch (err) {
         console.error('Error in updateOwners:', err);
         return { error: err.message || 'Error updating owners.' };

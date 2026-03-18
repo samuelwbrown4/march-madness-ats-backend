@@ -4,7 +4,8 @@ const LeagueSchema = new mongoose.Schema({
     name: {type: String, required: true, unique: true},
     players: [String],
     year: Number,
-    createdAt: {type: Date, default: Date.now}
+    createdAt: {type: Date, default: Date.now},
+    isArchived: { type: Boolean, default: false }
 })
 
 module.exports = mongoose.model('League', LeagueSchema, 'leagues');

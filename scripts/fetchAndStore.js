@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const path = require('path')
 const Timestamp = require('../models/Timestamp')
 const Team = require('../models/Team');
+const League = require('../models/League');
 
 
 
@@ -25,6 +26,9 @@ async function fetchAndStore(inputDate, runDate) {
         }
 
         await Timestamp.insertOne(log);
+
+        const leagues = await League.find({ isArchived: false })
+        const activeIds = leagues.map((l) => l._id.toString())
 
         //fetch tournament data
         const res = await fetch(API_URL);
@@ -110,23 +114,26 @@ async function fetchAndStore(inputDate, runDate) {
                     }
 
                     for (let dbTeam of dbTeams) {
-                        console.log('found team to update', team.nameShort, game.round, 'in league', dbTeam.leagueName)
+                        if (activeIds.includes(dbTeam.leagueId)) {
+                            console.log('found team to update', team.nameShort, game.round, 'in league', dbTeam.leagueName)
 
-                        dbTeam.rounds[game.round - 1].finalScore = team.score;
-                        dbTeam.rounds[game.round - 1].isFinal = true;
-                        dbTeam.rounds[game.round - 1].didWin = team.isWinner;
+                            dbTeam.rounds[game.round - 1].finalScore = team.score;
+                            dbTeam.rounds[game.round - 1].isFinal = true;
+                            dbTeam.rounds[game.round - 1].didWin = team.isWinner;
 
-                        if (dbTeam.name === game.teams[0].nameShort) {
-                            dbTeam.rounds[game.round - 1].opponent = game.teams[1].nameShort;
-                            dbTeam.rounds[game.round - 1].opponentFinalScore = game.teams[1].score;
+                            if (dbTeam.name === game.teams[0].nameShort) {
+                                dbTeam.rounds[game.round - 1].opponent = game.teams[1].nameShort;
+                                dbTeam.rounds[game.round - 1].opponentFinalScore = game.teams[1].score;
 
-                        } else if (dbTeam.name === game.teams[1].nameShort) {
-                            dbTeam.rounds[game.round - 1].opponent = game.teams[0].nameShort;
-                            dbTeam.rounds[game.round - 1].opponentFinalScore = game.teams[0].score;
+                            } else if (dbTeam.name === game.teams[1].nameShort) {
+                                dbTeam.rounds[game.round - 1].opponent = game.teams[0].nameShort;
+                                dbTeam.rounds[game.round - 1].opponentFinalScore = game.teams[0].score;
 
+                            }
+
+                            await dbTeam.save();
                         }
 
-                        await dbTeam.save();
                     }
                 }
             }

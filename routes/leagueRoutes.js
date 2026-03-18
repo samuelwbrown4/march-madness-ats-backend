@@ -25,7 +25,7 @@ router.get('/exists/:name', async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 
-})
+});
 
 router.get('/name', async (req, res) => {
     const leagueId = req.query.leagueId
@@ -42,7 +42,7 @@ router.get('/name', async (req, res) => {
     }
 
 
-})
+});
 
 
 router.post('/initialize-tournament', async (req, res) => {
@@ -110,11 +110,11 @@ router.get('/get-standings', async (req, res) => {
         res.status(500).json({ error: error.message || 'Server Error' });
     }
 
-})
+});
 
 router.get('/get-all-leagues', async (req, res) => {
     try {
-        const allLeagues = await League.find({})
+        const allLeagues = await League.find({isArchived: false})
 
         let allLeagueNames = [];
 
@@ -127,7 +127,7 @@ router.get('/get-all-leagues', async (req, res) => {
         res.status(500).json({ error: error.message || 'Server Error' });
     }
 
-})
+});
 
 router.post('/queue-league', async (req, res) => {
     try {
@@ -156,6 +156,37 @@ router.post('/queue-league', async (req, res) => {
     }
 
 
+});
+
+router.get('/get-queued-leagues' , async (req , res)=>{
+    try{
+        let queuedLeagues = await LeagueQueue.find({});
+
+        if(queuedLeagues){
+            res.status(200).json({success: true , queuedLeagues: queuedLeagues})
+        }
+        else{
+            res.status(200).json({error: 'no leagues in queue'})
+        }
+    }catch (error) {
+        res.status(500).json({ error: error.message || 'Server Error' });
+    }
+});
+
+router.delete('/remove-from-queue/:leagueName' , async (req , res)=> {
+    try{
+        const {leagueName} = req.params
+
+        const deleted = await LeagueQueue.deleteOne({name: leagueName})
+
+        if(deleted.deletedCount > 0){
+            res.json({success: true});
+        } else {
+            res.status(404).json({error: 'League not found in queue'})
+        }
+    }catch (error) {
+        res.status(500).json({ error: error.message || 'Server Error' });
+    }
 })
 
 module.exports = router;

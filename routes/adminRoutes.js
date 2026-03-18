@@ -246,4 +246,25 @@ router.delete('/run-log-reset', requireAdmin, async (req, res) => {
     }
 });
 
+
+router.patch('/archive/:leagueName' , requireAdmin , async (req , res) => {
+       try {
+        const { leagueName } = req.params;
+        
+        const league = await League.findOneAndUpdate(
+            {name: leagueName},
+            { isArchived: true },
+            { new: true }
+        );
+        
+        if (!league) {
+            return res.status(404).json({ error: 'League not found' });
+        }
+        
+        res.json({ success: true, message: 'League archived successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message || 'Server Error' });
+    } 
+})
+
 module.exports = router;
