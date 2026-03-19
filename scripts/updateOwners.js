@@ -58,6 +58,14 @@ async function updateOwners(updateOwnersDate, runDate) {
                 const dbWinningTeam = dbWinningTeams[i];
                 const dbLosingTeam = dbLosingTeams.find((team) => team.leagueId === dbWinningTeam.leagueId);
 
+                console.log('Checking game:', winningTeam.nameShort, 'vs', losingTeam.nameShort);
+                console.log('updateDate:', updateDate);
+                console.log('gameDate:', gameDate);
+                console.log('updateDate > gameDate:', updateDate > gameDate);
+                console.log('statusCodeDisplay:', game.statusCodeDisplay);
+                console.log('ownerUpdated flags:', dbWinningTeam.rounds[roundIdx].ownerUpdated, dbLosingTeam.rounds[roundIdx].ownerUpdated);
+
+
                 if (updateDate > gameDate && game.statusCodeDisplay === 'final' && !dbWinningTeam.rounds[roundIdx].ownerUpdated && !dbLosingTeam.rounds[roundIdx].ownerUpdated && activeIds.includes(dbWinningTeam.leagueId) && activeIds.includes(dbLosingTeam.leagueId)) {
 
                     const winningTeamScore = dbWinningTeam.rounds[roundIdx].finalScore;
