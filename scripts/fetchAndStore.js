@@ -27,7 +27,7 @@ async function fetchAndStore(inputDate, runDate) {
 
         await Timestamp.insertOne(log);
 
-        const leagues = await League.find({ isArchived: false })
+        const leagues = await League.find({ isArchived: false, year: year })
         const activeIds = leagues.map((l) => l._id.toString())
 
         //fetch tournament data
