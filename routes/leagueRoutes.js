@@ -97,7 +97,10 @@ router.get('/get-standings', async (req, res) => {
             unplayedGames.forEach(function (game) {
                 if (game.owner === player.name) {
                     player.teamCount++
-                    player.teams.push(game.ownerTeam)
+                    player.teams.push({
+                        team: game.ownerTeam,
+                        logo: game.logoURL
+                    })
                 }
             })
         })

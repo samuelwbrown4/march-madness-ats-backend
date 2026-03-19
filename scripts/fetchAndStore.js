@@ -83,8 +83,6 @@ async function fetchAndStore(inputDate, runDate) {
             }
         });
 
-
-
         fs.writeFileSync(
             path.resolve(__dirname, `../data/tournament-data-${year}.json`),
             JSON.stringify(data, null, 2)
@@ -94,8 +92,6 @@ async function fetchAndStore(inputDate, runDate) {
         // 11:59:59 PM Eastern = 03:59:59 UTC next day
         const runForDate = new Date(Date.UTC(Number(yYear), Number(month) - 1, Number(day) + 1, 3, 59, 59, 999));
         const inputDateOnly = `${yYear}-${month}-${day}`;
-
-
 
         for (let game of games) {
             if (game.round === 0) continue;

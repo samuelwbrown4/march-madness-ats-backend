@@ -64,7 +64,6 @@ async function updateOwners(updateOwnersDate, runDate) {
                     const winningTeamSpread = dbWinningTeam.rounds[roundIdx].spread;
                     const winningTeamAdjustedScore = winningTeamScore + winningTeamSpread;
 
-
                     const losingTeamScore = dbLosingTeam.rounds[roundIdx].finalScore;
                     const losingTeamSpread = dbLosingTeam.rounds[roundIdx].spread;
                     const losingTeamAdjustedScore = losingTeamScore + losingTeamSpread;
@@ -72,18 +71,16 @@ async function updateOwners(updateOwnersDate, runDate) {
                     if (winningTeamAdjustedScore > losingTeamAdjustedScore) {
 
                         dbWinningTeam.rounds[roundIdx].didCover = true;
-
-
                         dbLosingTeam.rounds[roundIdx].didCover = false;
 
-
-                    } else {
+                    } else if(losingTeamAdjustedScore > winningTeamAdjustedScore){
 
                         dbLosingTeam.rounds[roundIdx].didCover = true;
-
-
                         dbWinningTeam.rounds[roundIdx].didCover = false;
 
+                    } else {
+                        dbLosingTeam.rounds[roundIdx].didCover = false;
+                        dbWinningTeam.rounds[roundIdx].didCover = false;
                     }
 
                     await dbLosingTeam.save();
@@ -95,12 +92,9 @@ async function updateOwners(updateOwnersDate, runDate) {
                     dbLosingTeam.rounds[roundIdx].opponent = dbWinningTeam.name;
                     dbLosingTeam.rounds[roundIdx].opponentFinalScore = dbWinningTeam.rounds[roundIdx].finalScore;
 
-
                     dbWinningTeam.rounds[roundIdx].isFavorite = winningTeamSpread < 0 ? true : false;
 
                     dbLosingTeam.rounds[roundIdx].isFavorite = losingTeamSpread < 0 ? true : false;
-
-                    const gameRound = game.round;
 
                     if (dbWinningTeam && dbLosingTeam) {
                         //console.log('underdog: ', dbUnderdog.name , dbUnderdog.spreads[`round${gameRound}`])
@@ -113,7 +107,6 @@ async function updateOwners(updateOwnersDate, runDate) {
                             await dbLosingTeam.save();
                             console.log('updated favorite')
 
-
                         } else if (!dbLosingTeam.rounds[roundIdx].isFavorite && dbLosingTeam.rounds[roundIdx].didCover) {
                             //owner of underdog in this round is new owner of winningTeam
                             dbWinningTeam.rounds[nextRoundIdx].owner = dbLosingTeam.rounds[roundIdx].owner;
@@ -123,6 +116,12 @@ async function updateOwners(updateOwnersDate, runDate) {
                             await dbLosingTeam.save();
                             console.log('updated favorite w previous underdog')
 
+                        } else if(!dbWinningTeam.rounds[roundIdx].didCover && !dbLosingTeam.rounds[roundIdx].didCover){
+                            dbWinningTeam.rounds[nextRoundIdx].owner = dbWinningTeam.rounds[roundIdx].owner;
+                            dbWinningTeam.rounds[roundIdx].ownerUpdated = true;
+                            dbLosingTeam.rounds[roundIdx].ownerUpdated = true;
+                            await dbWinningTeam.save();
+                            await dbLosingTeam.save();
                         }
 
                     } else console.log('underdog or favorite not found')

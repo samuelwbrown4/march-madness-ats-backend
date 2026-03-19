@@ -187,9 +187,8 @@ router.delete('/run-log-reset', requireAdmin, async (req, res) => {
                 }
             }
         );
-
-        // Re-fetch fresh tournament data from API
-        const inputYear = Number(yearToReset); // or get this from metadata
+       
+        const inputYear = Number(yearToReset); 
         const TOURNAMENT_API_BASE_URL = process.env.TOURNAMENT_API_BASE_URL;
         const API_URL = `${TOURNAMENT_API_BASE_URL}${inputYear}`;
         
@@ -229,7 +228,6 @@ router.delete('/run-log-reset', requireAdmin, async (req, res) => {
             }
         });
 
-        // Write fresh tournament data
         fs.writeFileSync(
             path.resolve(__dirname, `../data/tournament-data-${inputYear}.json`),
             JSON.stringify(data, null, 2)

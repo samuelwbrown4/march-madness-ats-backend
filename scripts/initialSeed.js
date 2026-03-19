@@ -29,7 +29,6 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
         const res = await fetch(API_URL);
         const data = await res.json();
 
-
         const championship = data.championships[0];
         const games = championship.games;
         const rounds = championship.rounds;
@@ -47,11 +46,7 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
 
         //for each round, take the date range and split it into start and end dates.
 
-
-
         rounds.forEach(function (round) {
-
-
 
             if (round.roundNumber <= 5) {
                 let dateParts = round.subtitle.split('-');
@@ -110,7 +105,7 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
                 let object = map.find((school) => school.seo === team.seoname);
 
                 if (!object) {
-                    console.warn(`⚠️  Team not found in map: ${team.seoname} (${team.nameShort})`);
+                    console.warn(`Team not found in map: ${team.seoname} (${team.nameShort})`);
                     team.matchedId = null;
                     team.logoURL = null;
                 } else {
@@ -269,7 +264,6 @@ async function initialSeedTeams(leagueName, owners, numberOfOwners, inputYear, r
                         leagueId: newLeague._id
                     });
 
-                    // Create team object for second team
                     teams.push({
                         name: game.teams[1].nameShort,
                         seed: game.teams[1].seed,

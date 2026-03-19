@@ -46,10 +46,7 @@ async function spreadUpdater(spreadUpdateDate, runDate) {
         let rawMap = fs.readFileSync(path.resolve(__dirname, `../data/map/master.json`));
         let map = JSON.parse(rawMap);
 
-
         //************************************************************************//
-
-
 
         const log = {
             runType: "spreadUpdate",
