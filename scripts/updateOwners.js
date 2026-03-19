@@ -23,7 +23,7 @@ async function updateOwners(updateOwnersDate, runDate) {
             return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${time}:00`);
         }
 
-        const leagues = await League.find({ isArchived: false })
+        const leagues = await League.find({ isArchived: false, year: Number(yYear) })
         const activeIds = leagues.map((l) => l._id.toString())
 
         const log = {
