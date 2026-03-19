@@ -81,12 +81,12 @@ async function updateOwners(updateOwnersDate, runDate) {
                     const losingTeamSpread = dbLosingTeam.rounds[roundIdx].spread;
                     const losingTeamAdjustedScore = losingTeamScore + losingTeamSpread;
 
-                    if (winningTeamAdjustedScore > losingTeamAdjustedScore) {
+                    if (winningTeamAdjustedScore > losingTeamScore) {
 
                         dbWinningTeam.rounds[roundIdx].didCover = true;
                         dbLosingTeam.rounds[roundIdx].didCover = false;
 
-                    } else if (losingTeamAdjustedScore > winningTeamAdjustedScore) {
+                    } else if (losingTeamAdjustedScore > winningTeamScore) {
 
                         dbLosingTeam.rounds[roundIdx].didCover = true;
                         dbWinningTeam.rounds[roundIdx].didCover = false;
