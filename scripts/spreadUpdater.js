@@ -13,8 +13,7 @@ async function spreadUpdater(spreadUpdateDate, runDate) {
     try {
         console.log(spreadUpdateDate)
 
-        const leagues = await League.find({isArchived: false})
-        const activeIds = leagues.map((l)=>l._id.toString())
+       
 
         let totalSpreadsInjected = 0;
 
@@ -26,6 +25,9 @@ async function spreadUpdater(spreadUpdateDate, runDate) {
 
         console.log('startToday:', startToday);
         console.log('endToday:', endToday);
+
+         const leagues = await League.find({isArchived: false, year: Number(year)})
+        const activeIds = leagues.map((l)=>l._id.toString())
 
         //helper function to get date time format from gameday strings in tournament data. i.e. date: "03/21/2025", time: "16:05"
         function parseGameDate(date, time) {
