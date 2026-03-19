@@ -46,8 +46,8 @@ async function updateOwners(updateOwnersDate, runDate) {
             const winningTeam = game.teams.find((team) => team.isWinner === true);
             const losingTeam = game.teams.find((team) => team.isWinner === false);
 
-            const dbWinningTeams = await Team.find({ name: winningTeam.nameShort, seed: winningTeam.seed });
-            const dbLosingTeams = await Team.find({ name: losingTeam.nameShort, seed: losingTeam.seed });
+            const dbWinningTeams = await Team.find({ name: winningTeam.nameShort, seed: winningTeam.seed, leagueId: { $in: activeIds } });
+            const dbLosingTeams = await Team.find({ name: losingTeam.nameShort, seed: losingTeam.seed, leagueId: { $in: activeIds } });
 
             if (dbWinningTeams.length === 0 || dbLosingTeams.length === 0) {
                 console.warn(`Teams not found: ${winningTeam.nameShort} or ${losingTeam.nameShort}`);
@@ -73,7 +73,7 @@ async function updateOwners(updateOwnersDate, runDate) {
                         dbWinningTeam.rounds[roundIdx].didCover = true;
                         dbLosingTeam.rounds[roundIdx].didCover = false;
 
-                    } else if(losingTeamAdjustedScore > winningTeamAdjustedScore){
+                    } else if (losingTeamAdjustedScore > winningTeamAdjustedScore) {
 
                         dbLosingTeam.rounds[roundIdx].didCover = true;
                         dbWinningTeam.rounds[roundIdx].didCover = false;
@@ -116,7 +116,7 @@ async function updateOwners(updateOwnersDate, runDate) {
                             await dbLosingTeam.save();
                             console.log('updated favorite w previous underdog')
 
-                        } else if(!dbWinningTeam.rounds[roundIdx].didCover && !dbLosingTeam.rounds[roundIdx].didCover){
+                        } else if (!dbWinningTeam.rounds[roundIdx].didCover && !dbLosingTeam.rounds[roundIdx].didCover) {
                             dbWinningTeam.rounds[nextRoundIdx].owner = dbWinningTeam.rounds[roundIdx].owner;
                             dbWinningTeam.rounds[roundIdx].ownerUpdated = true;
                             dbLosingTeam.rounds[roundIdx].ownerUpdated = true;
@@ -125,15 +125,15 @@ async function updateOwners(updateOwnersDate, runDate) {
                         }
 
                         if (game.round === 6 && game.statusCodeDisplay === 'final') {
-                        const championOwner = dbWinningTeam.rounds[5].owner; 
-                        
-                        await League.updateOne(
-                            { _id: dbWinningTeam.leagueId },
-                            { $set: { champion: championOwner } }
-                        );
-                        
-                        console.log(`Set champion for league ${dbWinningTeam.leagueId}: ${championOwner}`);
-                    }
+                            const championOwner = dbWinningTeam.rounds[5].owner;
+
+                            await League.updateOne(
+                                { _id: dbWinningTeam.leagueId },
+                                { $set: { champion: championOwner } }
+                            );
+
+                            console.log(`Set champion for league ${dbWinningTeam.leagueId}: ${championOwner}`);
+                        }
 
                     } else console.log('underdog or favorite not found')
 
