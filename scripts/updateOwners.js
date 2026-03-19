@@ -46,6 +46,11 @@ async function updateOwners(updateOwnersDate, runDate) {
             const winningTeam = game.teams.find((team) => team.isWinner === true);
             const losingTeam = game.teams.find((team) => team.isWinner === false);
 
+            if (!winningTeam || !losingTeam) {
+                console.warn(`Skipping game - missing winner/loser data. Round: ${game.round}`);
+                continue;
+            }
+
             const dbWinningTeams = await Team.find({ name: winningTeam.nameShort, seed: winningTeam.seed, leagueId: { $in: activeIds } });
             const dbLosingTeams = await Team.find({ name: losingTeam.nameShort, seed: losingTeam.seed, leagueId: { $in: activeIds } });
 
