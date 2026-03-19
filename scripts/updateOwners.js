@@ -71,7 +71,7 @@ async function updateOwners(updateOwnersDate, runDate) {
                 console.log('ownerUpdated flags:', dbWinningTeam.rounds[roundIdx].ownerUpdated, dbLosingTeam.rounds[roundIdx].ownerUpdated);
 
 
-                if (updateDate > gameDate && game.statusCodeDisplay === 'final' && /*!dbWinningTeam.rounds[roundIdx].ownerUpdated && !dbLosingTeam.rounds[roundIdx].ownerUpdated &&*/ activeIds.includes(dbWinningTeam.leagueId) && activeIds.includes(dbLosingTeam.leagueId)) {
+                if (updateDate > gameDate && game.statusCodeDisplay === 'final' && !dbWinningTeam.rounds[roundIdx].ownerUpdated && !dbLosingTeam.rounds[roundIdx].ownerUpdated && activeIds.includes(dbWinningTeam.leagueId) && activeIds.includes(dbLosingTeam.leagueId)) {
 
                     const winningTeamScore = dbWinningTeam.rounds[roundIdx].finalScore;
                     const winningTeamSpread = dbWinningTeam.rounds[roundIdx].spread;
