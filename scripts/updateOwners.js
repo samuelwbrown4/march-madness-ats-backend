@@ -124,6 +124,17 @@ async function updateOwners(updateOwnersDate, runDate) {
                             await dbLosingTeam.save();
                         }
 
+                        if (game.round === 6 && game.statusCodeDisplay === 'final') {
+                        const championOwner = dbWinningTeam.rounds[5].owner; 
+                        
+                        await League.updateOne(
+                            { _id: dbWinningTeam.leagueId },
+                            { $set: { champion: championOwner } }
+                        );
+                        
+                        console.log(`Set champion for league ${dbWinningTeam.leagueId}: ${championOwner}`);
+                    }
+
                     } else console.log('underdog or favorite not found')
 
                 }
