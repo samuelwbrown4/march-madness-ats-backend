@@ -23,3 +23,7 @@ yarn-error.log*
 # Build/output
 dist/
 build/
+
+
+#tournament-data
+data/tournament-data-*.json

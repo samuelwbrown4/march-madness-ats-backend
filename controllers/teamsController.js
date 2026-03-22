@@ -106,12 +106,27 @@ exports.getAllTeams = async (req, res) => {
         function attachDbDataToGameTeams(gameArray, dbTeams) {
 
             gameArray.forEach(function (game) {
-
                 let roundIdx = game.round - 1;
-
                 game.teams.forEach(function (team) {
                     let dbTeam = dbTeams.find((t) => t.name === team.nameShort && t.seed === team.seed);
-
+                    if (!dbTeam) {
+                        console.error(`No dbTeam found for team: nameShort='${team.nameShort}', seed='${team.seed}', round=${game.round}`);
+                        team.owner = null;
+                        team.dbSpread = null;
+                        team.isFinal = null;
+                        team.didCover = null;
+                        team.logoURL = null;
+                        return;
+                    }
+                    if (!dbTeam.rounds || !dbTeam.rounds[roundIdx]) {
+                        console.error(`No round data for team: nameShort='${team.nameShort}', seed='${team.seed}', roundIdx=${roundIdx}`);
+                        team.owner = null;
+                        team.dbSpread = null;
+                        team.isFinal = null;
+                        team.didCover = null;
+                        team.logoURL = null;
+                        return;
+                    }
                     team.owner = dbTeam.rounds[roundIdx].owner;
                     team.dbSpread = dbTeam.rounds[roundIdx].spread;
                     team.isFinal = dbTeam.rounds[roundIdx].isFinal;
@@ -124,10 +139,26 @@ exports.getAllTeams = async (req, res) => {
         function attachDbDataToFinalFour(gameArray, dbTeams) {
             gameArray.forEach(function (game) {
                 let roundIdx = game.round - 1;
-
                 game.teams.forEach(function (team) {
                     let dbTeam = dbTeams.find((t) => t.name === team.nameShort && t.seed === team.seed);
-
+                    if (!dbTeam) {
+                        console.error(`No dbTeam found for team: nameShort='${team.nameShort}', seed='${team.seed}', round=${game.round}`);
+                        team.owner = null;
+                        team.dbSpread = null;
+                        team.isFinal = null;
+                        team.didCover = null;
+                        team.logoURL = null;
+                        return;
+                    }
+                    if (!dbTeam.rounds || !dbTeam.rounds[roundIdx]) {
+                        console.error(`No round data for team: nameShort='${team.nameShort}', seed='${team.seed}', roundIdx=${roundIdx}`);
+                        team.owner = null;
+                        team.dbSpread = null;
+                        team.isFinal = null;
+                        team.didCover = null;
+                        team.logoURL = null;
+                        return;
+                    }
                     team.owner = dbTeam.rounds[roundIdx].owner;
                     team.dbSpread = dbTeam.rounds[roundIdx].spread;
                     team.isFinal = dbTeam.rounds[roundIdx].isFinal;
@@ -141,7 +172,24 @@ exports.getAllTeams = async (req, res) => {
             game.teams.forEach(function (team) {
                 let roundIdx = game.round - 1;
                 let dbTeam = dbTeams.find((t) => t.name === team.nameShort && t.seed === team.seed);
-
+                if (!dbTeam) {
+                    console.error(`No dbTeam found for team: nameShort='${team.nameShort}', seed='${team.seed}', round=${game.round}`);
+                    team.owner = null;
+                    team.dbSpread = null;
+                    team.isFinal = null;
+                    team.didCover = null;
+                    team.logoURL = null;
+                    return;
+                }
+                if (!dbTeam.rounds || !dbTeam.rounds[roundIdx]) {
+                    console.error(`No round data for team: nameShort='${team.nameShort}', seed='${team.seed}', roundIdx=${roundIdx}`);
+                    team.owner = null;
+                    team.dbSpread = null;
+                    team.isFinal = null;
+                    team.didCover = null;
+                    team.logoURL = null;
+                    return;
+                }
                 team.owner = dbTeam.rounds[roundIdx].owner;
                 team.dbSpread = dbTeam.rounds[roundIdx].spread;
                 team.isFinal = dbTeam.rounds[roundIdx].isFinal;
