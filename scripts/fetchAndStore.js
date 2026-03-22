@@ -74,13 +74,13 @@ async function fetchAndStore(inputDate, runDate) {
                 }
             })
 
-            if (game.teams.length === 2) {
-                game.teams.forEach(function (team) {
-                    if (team.nameShort.endsWith("St.")) {
-                        team.nameShort = team.nameShort.replace(/St\.$/, "State");
-                    }
-                })
-            }
+
+            game.teams.forEach(function (team) {
+                if (team.nameShort.endsWith("St.")) {
+                    team.nameShort = team.nameShort.replace(/St\.$/, "State");
+                }
+            })
+
         });
 
         fs.writeFileSync(
