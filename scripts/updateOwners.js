@@ -113,7 +113,7 @@ async function updateOwners(updateOwnersDate, runDate) {
                         //console.log('underdog: ', dbUnderdog.name , dbUnderdog.spreads[`round${gameRound}`])
                         if (dbWinningTeam.rounds[roundIdx].didCover) {
                             //keep favorite owner the same
-                            dbWinningTeam.rounds[nextRoundIdx].owner = dbWinningTeam.rounds[roundIdx].owner;
+                            if (game.round < 6) dbWinningTeam.rounds[nextRoundIdx].owner = dbWinningTeam.rounds[roundIdx].owner;
                             dbWinningTeam.rounds[roundIdx].ownerUpdated = true;
                             dbLosingTeam.rounds[roundIdx].ownerUpdated = true;
                             await dbWinningTeam.save();
@@ -122,7 +122,7 @@ async function updateOwners(updateOwnersDate, runDate) {
 
                         } else if (!dbLosingTeam.rounds[roundIdx].isFavorite && dbLosingTeam.rounds[roundIdx].didCover) {
                             //owner of underdog in this round is new owner of winningTeam
-                            dbWinningTeam.rounds[nextRoundIdx].owner = dbLosingTeam.rounds[roundIdx].owner;
+                            if (game.round < 6) dbWinningTeam.rounds[nextRoundIdx].owner = dbLosingTeam.rounds[roundIdx].owner;
                             dbWinningTeam.rounds[roundIdx].ownerUpdated = true;
                             dbLosingTeam.rounds[roundIdx].ownerUpdated = true;
                             await dbWinningTeam.save();
@@ -130,7 +130,7 @@ async function updateOwners(updateOwnersDate, runDate) {
                             console.log('updated favorite w previous underdog')
 
                         } else if (!dbWinningTeam.rounds[roundIdx].didCover && !dbLosingTeam.rounds[roundIdx].didCover) {
-                            dbWinningTeam.rounds[nextRoundIdx].owner = dbWinningTeam.rounds[roundIdx].owner;
+                            if (game.round < 6) dbWinningTeam.rounds[nextRoundIdx].owner = dbWinningTeam.rounds[roundIdx].owner;
                             dbWinningTeam.rounds[roundIdx].ownerUpdated = true;
                             dbLosingTeam.rounds[roundIdx].ownerUpdated = true;
                             await dbWinningTeam.save();
@@ -138,7 +138,8 @@ async function updateOwners(updateOwnersDate, runDate) {
                         }
 
                         if (game.round === 6 && game.statusCodeDisplay === 'final') {
-                            const championOwner = dbWinningTeam.rounds[5].owner;
+                            const coveringTeam = dbWinningTeam.rounds[roundIdx].didCover ? dbWinningTeam : dbLosingTeam;
+                            const championOwner = coveringTeam.rounds[roundIdx].owner;
 
                             await League.updateOne(
                                 { _id: dbWinningTeam.leagueId },
